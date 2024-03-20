@@ -2,6 +2,7 @@ package com.gamevuifree.Configuration;
 
 
 import com.gamevuifree.Configuration.Jwt.JwtAuthFilter;
+import com.gamevuifree.Service.AuthServiceImpl.AuthServiceImpl;
 import com.gamevuifree.UserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +39,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken","/actuator/**").permitAll()
+                .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken","/actuator/**","/api/v1/auth/login","/api/v1/auth/register").permitAll()
                 .and()
                 .authorizeHttpRequests().requestMatchers("/auth/user/**").authenticated()
                 .and()

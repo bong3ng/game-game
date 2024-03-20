@@ -1,5 +1,8 @@
 package com.gamevuifree.Configuration.Jwt;
+import com.gamevuifree.Entity.UserInfo;
 import com.gamevuifree.JwtService;
+import com.gamevuifree.Repository.UserInfoRepository;
+import com.gamevuifree.UserInfoDetails;
 import com.gamevuifree.UserInfoService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -20,8 +25,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;
 
+//    @Autowired
+//    private UserInfoService userDetailsService;
     @Autowired
-    private UserInfoService userDetailsService;
+    private UserInfoRepository repository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -33,9 +40,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             username = jwtService.extractUsername(token);
         }
 
+//        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//            //lay thong tin user trong db
+//            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//            if (jwtService.validateToken(token, userDetails)) {
+//                //lay role user
+//                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+//                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                SecurityContextHolder.getContext().setAuthentication(authToken);
+//            }
+//        }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            //lay thong tin user trong db
+            Optional<UserInfo> userEntity = repository.findByName(username);
+            // Converting userDetail to UserDetails
+            UserDetails userDetails = userEntity.map(UserInfoDetails::new).orElseThrow();
             if (jwtService.validateToken(token, userDetails)) {
+                //lay role user
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
